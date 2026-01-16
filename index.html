@@ -3,57 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DARSAP v6 - Global Connect</title>
+    <title>DARSAP v8 - Mobile Navigation</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --primary: #00a884; --header-bg: #f0f2f5; --sidebar-bg: #ffffff;
-            --chat-bg: #e5ddd5; --msg-out: #d9fdd3; --msg-in: #ffffff;
-            --text-main: #111b21; --text-sec: #667781;
+            --wa-green: #008069;
+            --wa-bg: #efeae2;
+            --white: #ffffff;
+            --gray: #667781;
         }
 
-        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #f0f2f5; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100dvh; overflow: hidden; background: #f0f2f5; }
 
-        .app-container { display: flex; width: 100vw; height: 100vh; position: relative; }
+        /* --- CONTAINER --- */
+        .app-container { display: flex; width: 100%; height: 100%; position: relative; }
 
-        /* SIDEBAR */
-        .sidebar { width: 30%; min-width: 350px; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 10; border-right: 1px solid #d1d7db; }
-
-        /* CHAT PANEL */
-        .chat-panel { flex: 1; display: flex; flex-direction: column; background: var(--chat-bg) url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); position: relative; overflow: hidden; }
-
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; min-width: 100%; }
-            .chat-panel { position: fixed; top: 0; left: 100%; width: 100%; height: 100%; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-            .chat-panel.active { transform: translateX(-100%); }
+        /* --- SIDEBAR (DAFTAR KONTAK) --- */
+        .sidebar { 
+            width: 100%; height: 100%; background: var(--white); 
+            display: flex; flex-direction: column; z-index: 10;
         }
 
-        /* COMPONENTS */
-        .header { height: 65px; background: var(--header-bg); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; border-bottom: 1px solid #d1d7db; }
-        .avatar { width: 45px; height: 45px; border-radius: 50%; background: #dfe5e7; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid rgba(0,0,0,0.05); }
+        /* --- CHAT PANEL (RUANG PESAN) --- */
+        .chat-panel { 
+            position: absolute; top: 0; left: 100%; width: 100%; height: 100%;
+            background: var(--wa-bg); display: flex; flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20; box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+        }
+        /* Class ini aktif saat kontak diklik */
+        .chat-panel.active { transform: translateX(-100%); }
+
+        /* Layout Desktop */
+        @media (min-width: 768px) {
+            .sidebar { width: 30%; min-width: 350px; border-right: 1px solid #ddd; }
+            .chat-panel { position: relative; left: 0; flex: 1; transform: none !important; box-shadow: none; }
+            .back-btn { display: none !important; } /* Sembunyikan tombol back di laptop */
+        }
+
+        /* --- HEADER --- */
+        .header { 
+            height: 60px; background: #f0f2f5; padding: 0 15px;
+            display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #ddd;
+        }
+        .back-btn { font-size: 24px; color: var(--gray); cursor: pointer; padding: 5px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #ccc; overflow: hidden; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
+        /* --- CONTACT LIST --- */
         .contact-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .contact-item { padding: 12px 16px; display: flex; align-items: center; gap: 15px; cursor: pointer; border-bottom: 1px solid #f5f6f6; }
-        .contact-item:active { background-color: #f0f2f5; }
+        .contact-item { 
+            padding: 15px; display: flex; align-items: center; gap: 15px;
+            border-bottom: 1px solid #f2f2f2; cursor: pointer; background: white;
+        }
+        .contact-item:active { background: #f0f2f5; }
 
-        .message-container { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 4px; -webkit-overflow-scrolling: touch; }
-        .bubble { max-width: 85%; padding: 8px 12px; font-size: 15px; line-height: 1.4; position: relative; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
-        .bubble.sent { background: var(--msg-out); align-self: flex-end; border-radius: 10px 0px 10px 10px; }
-        .bubble.received { background: var(--msg-in); align-self: flex-start; border-radius: 0px 10px 10px 10px; }
-        .time { font-size: 10px; color: #667781; margin-top: 4px; display: block; text-align: right; }
+        /* --- MESSAGES AREA --- */
+        .message-box { 
+            flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+        }
+        .bubble { 
+            max-width: 80%; padding: 8px 12px; border-radius: 10px; font-size: 15px; 
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1); position: relative;
+        }
+        .bubble.sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
+        .bubble.received { background: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
 
-        .input-bar { padding: 10px; background: var(--header-bg); display: flex; align-items: center; gap: 10px; }
-        .input-wrapper { flex: 1; background: white; border-radius: 25px; padding: 8px 16px; }
-        .input-wrapper input { width: 100%; border: none; outline: none; font-size: 16px; }
-        .send-btn { width: 45px; height: 45px; border-radius: 50%; background: var(--primary); color: white; border: none; font-size: 20px; cursor: pointer; }
+        /* --- INPUT AREA --- */
+        .input-bar { 
+            background: #f0f2f5; padding: 10px; display: flex; align-items: center; gap: 10px;
+        }
+        .input-bar input { flex: 1; border: none; padding: 12px 18px; border-radius: 25px; outline: none; font-size: 16px; }
+        .btn-send { background: var(--wa-green); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; }
 
-        .fab { position: absolute; bottom: 20px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 3px 6px rgba(0,0,0,0.3); z-index: 15; }
+        /* --- FAB --- */
+        .fab { position: absolute; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #25d366; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 15; }
 
+        /* --- MODAL --- */
         .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; }
-        .modal { background: white; width: 85%; max-width: 380px; padding: 25px; border-radius: 20px; }
-        .modal input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; }
+        .modal { background: white; width: 90%; max-width: 350px; padding: 20px; border-radius: 12px; }
+        .modal input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -61,160 +92,126 @@
 <div class="app-container">
     <div class="sidebar">
         <div class="header">
-            <div class="avatar" id="myAvatar" onclick="openProfile()"><img id="myAvatarImg" src="https://via.placeholder.com/45"></div>
-            <b id="myNameHeader">Chat</b>
-            <span style="color: var(--primary); font-weight: bold;" id="myIdDisplay">...</span>
+            <div class="avatar" onclick="openProfile()"><img id="myPhoto" src="https://via.placeholder.com/40"></div>
+            <div style="flex:1"><b>Darsap Chat</b></div>
+            <small id="myIdDisplay" style="color: var(--wa-green); font-weight: bold;"></small>
         </div>
         <div class="contact-list" id="contactList"></div>
-        <div class="fab" onclick="openAddFriend()">+</div>
+        <div class="fab" onclick="openAdd()">+</div>
     </div>
 
     <div class="chat-panel" id="chatPanel">
-        <div id="activeChatUI" style="display: none; height: 100%; flex-direction: column;">
-            <div class="header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span onclick="goBack()" style="font-size: 24px; cursor: pointer;">←</span>
-                    <div class="avatar" id="activeAvatar"></div>
-                    <div><b id="activeName">Nama</b><br><small id="activeStatus" style="color: var(--primary);">online</small></div>
-                </div>
-                <div style="display: flex; gap: 20px;">
-                    <span onclick="startCall(false)">📞</span>
-                    <span onclick="startCall(true)">📹</span>
-                </div>
-            </div>
-            <div class="message-container" id="messageBox"></div>
-            <form class="input-bar" onsubmit="sendText(event)">
-                <div class="input-wrapper"><input type="text" id="chatInp" placeholder="Ketik pesan..." autocomplete="off"></div>
-                <button type="submit" class="send-btn">➤</button>
-            </form>
+        <div class="header">
+            <div class="back-btn" onclick="closeChat()">←</div>
+            <div class="avatar" id="activeAvatar"></div>
+            <div style="flex:1"><b id="activeName">Nama Teman</b></div>
         </div>
-        <div id="noChat" style="margin: auto; text-align: center; color: var(--text-sec);">
-            <h2>DARSAP CONNECT</h2>
-            <p>Pesan akan muncul otomatis meskipun belum save kontak.</p>
-        </div>
+        <div class="message-box" id="msgBox"></div>
+        <form class="input-bar" onsubmit="sendText(event)">
+            <input type="text" id="chatInp" placeholder="Ketik pesan..." autocomplete="off">
+            <button type="submit" class="btn-send">➤</button>
+        </form>
     </div>
 </div>
 
-<div class="modal-bg" id="profileModal">
+<div class="modal-bg" id="profModal">
     <div class="modal">
-        <h3>Profil Saya</h3>
+        <h3>Edit Profil</h3>
         <center>
-            <div class="avatar" style="width: 80px; height: 80px;" onclick="document.getElementById('pInp').click()"><img id="pPrev" src="https://via.placeholder.com/80"></div>
-            <input type="file" id="pInp" hidden onchange="previewImg(this)">
+            <div class="avatar" style="width: 70px; height: 70px; cursor: pointer;" onclick="document.getElementById('fileInp').click()">
+                <img id="prevImg" src="https://via.placeholder.com/70">
+            </div>
+            <input type="file" id="fileInp" hidden onchange="preview(this)">
         </center>
-        <input type="text" id="editName" placeholder="Nama Kamu">
-        <button onclick="saveProfile()" style="width:100%;" class="send-btn">Simpan</button>
-        <button onclick="hideModals()" style="width:100%; background:gray; margin-top:5px;" class="send-btn">Batal</button>
+        <input type="text" id="newName" placeholder="Nama Tampilan">
+        <button onclick="saveProfile()" style="width:100%; padding:10px; background:var(--wa-green); color:white; border:none; border-radius:8px;">Simpan</button>
+        <button onclick="closeModals()" style="width:100%; padding:10px; background:#ccc; border:none; border-radius:8px; margin-top:5px;">Batal</button>
     </div>
 </div>
 
 <div class="modal-bg" id="addModal">
     <div class="modal">
         <h3>Tambah Teman</h3>
-        <input type="text" id="fName" placeholder="Nama Panggilan">
-        <input type="text" id="fId" placeholder="ID Peer Teman">
-        <button onclick="confirmAdd()" style="width:100%;" class="send-btn">Tambah</button>
-        <button onclick="hideModals()" style="width:100%; background:gray; margin-top:5px;" class="send-btn">Batal</button>
+        <input type="text" id="addName" placeholder="Nama Panggilan">
+        <input type="text" id="addId" placeholder="ID Peer Teman">
+        <button onclick="confirmAdd()" style="width:100%; padding:10px; background:var(--wa-green); color:white; border:none; border-radius:8px;">Tambah</button>
+        <button onclick="closeModals()" style="width:100%; padding:10px; background:#ccc; border:none; border-radius:8px; margin-top:5px;">Batal</button>
     </div>
 </div>
 
 <script>
     let peer, myID, activeFriend;
     let connections = {};
-    let contacts = JSON.parse(localStorage.getItem('darsap_v6_contacts') || '[]');
-    let history = JSON.parse(localStorage.getItem('darsap_v6_history') || '{}');
-    let myProf = JSON.parse(localStorage.getItem('darsap_v6_prof') || '{"name":"User","photo":""}');
+    let myProf = JSON.parse(localStorage.getItem('d_v8_p') || '{"name":"User","photo":""}');
+    let contacts = JSON.parse(localStorage.getItem('d_v8_c') || '[]');
+    let history = JSON.parse(localStorage.getItem('d_v8_h') || '{}');
 
     window.onload = () => {
-        myID = localStorage.getItem('darsap_v6_id') || Math.random().toString(36).substr(2, 6);
-        localStorage.setItem('darsap_v6_id', myID);
-        document.getElementById('myIdDisplay').innerText = myID;
+        myID = localStorage.getItem('d_v8_id') || Math.random().toString(36).substr(2, 6);
+        localStorage.setItem('d_v8_id', myID);
+        document.getElementById('myIdDisplay').innerText = "ID: " + myID;
         
         peer = new Peer(myID);
-        peer.on('open', id => console.log('ID SAYA:', id));
+        peer.on('connection', conn => setupConn(conn));
         
-        // FITUR UTAMA: Terima Koneksi dari siapapun
-        peer.on('connection', conn => {
-            setupIncomingConnection(conn);
-        });
-
-        refreshUI();
+        updateMyUI();
+        renderContacts();
     };
 
-    function setupIncomingConnection(conn) {
+    function setupConn(conn) {
         connections[conn.peer] = conn;
-
-        // Cek apakah ID ini sudah ada di kontak?
-        let exists = contacts.find(c => c.id === conn.peer);
-        if (!exists) {
-            // JIKA BELUM SAVE, OTOMATIS TAMBAHKAN KE DAFTAR CHAT
-            contacts.push({ name: "Orang Baru (" + conn.peer + ")", id: conn.peer, photo: "" });
-            localStorage.setItem('darsap_v6_contacts', JSON.stringify(contacts));
+        if(!contacts.find(c => c.id === conn.peer)) {
+            contacts.push({id: conn.peer, name: "Baru: "+conn.peer, photo: ""});
+            localStorage.setItem('d_v8_c', JSON.stringify(contacts));
             renderContacts();
         }
-
         conn.on('data', data => {
             if(data.type === 'sync') {
-                updateFriendInfo(conn.peer, data);
+                updateContactInfo(conn.peer, data);
             } else {
-                saveMsg(conn.peer, 'received', data.content);
+                saveMsg(conn.peer, 'received', data.text);
                 if(activeFriend?.id === conn.peer) renderMessages();
             }
         });
-
-        conn.on('open', () => {
-            conn.send({type:'sync', name: myProf.name, photo: myProf.photo});
-        });
+        conn.on('open', () => conn.send({type:'sync', name: myProf.name, photo: myProf.photo}));
     }
 
-    function updateFriendInfo(id, data) {
-        let f = contacts.find(c => c.id === id);
-        if(f) {
-            f.name = data.name;
-            f.photo = data.photo;
-            localStorage.setItem('darsap_v6_contacts', JSON.stringify(contacts));
-            renderContacts();
-            if(activeFriend?.id === id) {
-                document.getElementById('activeName').innerText = f.name;
-                document.getElementById('activeAvatar').innerHTML = f.photo ? `<img src="${f.photo}">` : `<b>${f.name[0]}</b>`;
-            }
-        }
-    }
-
+    // FUNGSI UTAMA: Masuk ke Layar Chat
     function openChat(id) {
         activeFriend = contacts.find(c => c.id === id);
-        document.getElementById('noChat').style.display = 'none';
-        document.getElementById('activeChatUI').style.display = 'flex';
-        document.getElementById('chatPanel').classList.add('active');
         document.getElementById('activeName').innerText = activeFriend.name;
-        document.getElementById('activeAvatar').innerHTML = activeFriend.photo ? `<img src="${activeFriend.photo}">` : `<b>${activeFriend.name[0]}</b>`;
+        document.getElementById('activeAvatar').innerHTML = activeFriend.photo ? `<img src="${activeFriend.photo}">` : '';
+        
+        // Animasi geser layar chat (HP)
+        document.getElementById('chatPanel').classList.add('active');
         
         renderMessages();
-        
-        if(!connections[id]) {
-            const conn = peer.connect(id);
-            setupIncomingConnection(conn);
+
+        if(!connections[id] || !connections[id].open) {
+            setupConn(peer.connect(id));
         }
+    }
+
+    // FUNGSI UTAMA: Kembali ke Daftar Kontak
+    function closeChat() {
+        document.getElementById('chatPanel').classList.remove('active');
     }
 
     function sendText(e) {
         e.preventDefault();
         const inp = document.getElementById('chatInp');
-        if(inp.value && connections[activeFriend.id]?.open) {
-            connections[activeFriend.id].send({type:'text', content: inp.value});
+        if(inp.value.trim() && connections[activeFriend.id]?.open) {
+            connections[activeFriend.id].send({type:'msg', text: inp.value});
             saveMsg(activeFriend.id, 'sent', inp.value);
             renderMessages();
             inp.value = "";
-        } else if (!connections[activeFriend.id]?.open) {
-            alert("Menyambungkan ulang...");
-            openChat(activeFriend.id);
         }
     }
 
-    function saveMsg(id, dir, content) {
+    function saveMsg(id, dir, text) {
         if(!history[id]) history[id] = [];
-        history[id].push({dir, content, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})});
-        localStorage.setItem('darsap_v6_history', JSON.stringify(history));
+        history[id].push({dir, text, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})});
+        localStorage.setItem('d_v8_h', JSON.stringify(history));
         renderContacts();
     }
 
@@ -223,56 +220,64 @@
         list.innerHTML = "";
         contacts.forEach(c => {
             const h = history[c.id] || [];
-            const lastMsg = h.length > 0 ? h[h.length-1].content : 'Klik untuk chat';
+            const last = h.length > 0 ? h[h.length-1].text : "Klik untuk chat";
             list.innerHTML += `
                 <div class="contact-item" onclick="openChat('${c.id}')">
-                    <div class="avatar">${c.photo ? `<img src="${c.photo}">` : `<b>${c.name[0]}</b>`}</div>
-                    <div style="flex:1"><b>${c.name}</b><p style="margin:0;font-size:12px;color:gray;">${lastMsg}</p></div>
+                    <div class="avatar">${c.photo ? `<img src="${c.photo}">` : ''}</div>
+                    <div style="flex:1"><b>${c.name}</b><p style="margin:0;font-size:12px;color:gray;">${last}</p></div>
                 </div>`;
         });
     }
 
     function renderMessages() {
-        const box = document.getElementById('messageBox');
+        const box = document.getElementById('msgBox');
         box.innerHTML = "";
         (history[activeFriend.id] || []).forEach(m => {
-            box.innerHTML += `<div class="bubble ${m.dir}">${m.content}<span class="time">${m.time}</span></div>`;
+            box.innerHTML += `<div class="bubble ${m.dir}">${m.text}</div>`;
         });
         box.scrollTop = box.scrollHeight;
     }
 
-    function refreshUI() {
-        document.getElementById('myAvatarImg').src = myProf.photo || 'https://via.placeholder.com/45';
-        renderContacts();
-    }
-
-    function openProfile() { document.getElementById('profileModal').style.display='flex'; document.getElementById('editName').value = myProf.name; }
-    function openAddFriend() { document.getElementById('addModal').style.display='flex'; }
-    function hideModals() { document.querySelectorAll('.modal-bg').forEach(m => m.style.display='none'); }
-    function goBack() { document.getElementById('chatPanel').classList.remove('active'); }
-    
-    function previewImg(inp) {
-        if(inp.files[0]) {
-            let r = new FileReader();
-            r.onload = e => document.getElementById('pPrev').src = e.target.result;
-            r.readAsDataURL(inp.files[0]);
+    function updateContactInfo(id, data) {
+        let c = contacts.find(x => x.id === id);
+        if(c) {
+            c.name = data.name; c.photo = data.photo;
+            localStorage.setItem('d_v8_c', JSON.stringify(contacts));
+            renderContacts();
         }
     }
 
-    function saveProfile() {
-        myProf.name = document.getElementById('editName').value;
-        myProf.photo = document.getElementById('pPrev').src;
-        localStorage.setItem('darsap_v6_prof', JSON.stringify(myProf));
-        refreshUI();
-        hideModals();
+    function updateMyUI() {
+        document.getElementById('myPhoto').src = myProf.photo || 'https://via.placeholder.com/40';
     }
 
+    function openProfile() { document.getElementById('profModal').style.display='flex'; document.getElementById('newName').value = myProf.name; }
+    function openAdd() { document.getElementById('addModal').style.display='flex'; }
+    function closeModals() { document.querySelectorAll('.modal-bg').forEach(m => m.style.display='none'); }
+    function preview(inp) {
+        if(inp.files[0]) {
+            let r = new FileReader();
+            r.onload = e => document.getElementById('prevImg').src = e.target.result;
+            r.readAsDataURL(inp.files[0]);
+        }
+    }
+    function saveProfile() {
+        myProf.name = document.getElementById('newName').value;
+        myProf.photo = document.getElementById('prevImg').src;
+        localStorage.setItem('d_v8_p', JSON.stringify(myProf));
+        updateMyUI();
+        closeModals();
+    }
     function confirmAdd() {
-        const n = document.getElementById('fName').value;
-        const i = document.getElementById('fId').value;
-        if(n && i) { contacts.push({name:n, id:i, photo:""}); localStorage.setItem('darsap_v6_contacts', JSON.stringify(contacts)); renderContacts(); hideModals(); }
+        const n = document.getElementById('addName').value;
+        const i = document.getElementById('addId').value;
+        if(n && i) {
+            contacts.push({id: i, name: n, photo: ""});
+            localStorage.setItem('d_v8_c', JSON.stringify(contacts));
+            renderContacts();
+            closeModals();
+        }
     }
 </script>
 </body>
 </html>
-
