@@ -3,93 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WhatsApp Clone - DARSAP</title>
+  <title>WhatsApp DARSAP - Full Chat & Call</title>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     :root {
-      --bg-main: #0b141a;
-      --bg-sidebar: #111b21;
-      --bg-header: #202c33;
-      --wa-green: #00a884;
-      --text-main: #e9edef;
-      --text-dim: #8696a0;
-      --msg-out: #005c4b;
+      --bg-main: #0b141a; --bg-sidebar: #111b21; --bg-header: #202c33;
+      --wa-green: #00a884; --text-main: #e9edef; --text-dim: #8696a0; --msg-out: #005c4b;
     }
-
-    body { margin: 0; font-family: Segoe UI, Tahoma, sans-serif; background: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
-
-    /* SIDEBAR */
-    .sidebar { width: 30%; max-width: 400px; min-width: 300px; background: var(--bg-sidebar); border-right: 1px solid #313d45; display: flex; flex-direction: column; }
-    .sb-header { padding: 10px 16px; background: var(--bg-header); display: flex; justify-content: space-between; align-items: center; }
-    .my-info { font-size: 14px; color: var(--wa-green); font-weight: bold; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
     
-    .search-box { padding: 10px; background: var(--bg-sidebar); }
-    .search-box input { width: 100%; padding: 8px; border-radius: 8px; border: none; background: var(--bg-header); color: white; box-sizing: border-box; }
+    /* SIDEBAR */
+    .sidebar { width: 30%; max-width: 350px; background: var(--bg-sidebar); border-right: 1px solid #313d45; display: flex; flex-direction: column; }
+    .sb-header { padding: 15px; background: var(--bg-header); display: flex; justify-content: space-between; align-items: center; }
+    .my-id { font-size: 12px; color: var(--wa-green); cursor: pointer; }
 
     .contact-list { flex: 1; overflow-y: auto; }
-    .contact-item { padding: 12px 16px; display: flex; align-items: center; cursor: pointer; border-bottom: 1px solid #222d34; transition: 0.3s; }
+    .contact-item { padding: 12px; display: flex; align-items: center; cursor: pointer; border-bottom: 1px solid #222d34; transition: 0.2s; }
     .contact-item:hover { background: var(--bg-header); }
-    .contact-avatar { width: 45px; height: 45px; border-radius: 50%; background: #53616a; margin-right: 15px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .contact-info b { display: block; font-size: 16px; }
-    .contact-info span { font-size: 13px; color: var(--text-dim); }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: #53616a; margin-right: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
     /* CHAT AREA */
     .chat-area { flex: 1; display: flex; flex-direction: column; background: #0b141a url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; }
-    .chat-header { padding: 10px 16px; background: var(--bg-header); display: flex; align-items: center; gap: 15px; }
-    .chat-header .name-status { flex: 1; }
-    .chat-btns { display: flex; gap: 20px; font-size: 20px; cursor: pointer; }
+    .chat-header { padding: 10px 16px; background: var(--bg-header); display: flex; align-items: center; gap: 12px; }
+    .chat-btns { margin-left: auto; display: flex; gap: 20px; font-size: 20px; cursor: pointer; }
     
-    .messages { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-    .msg { max-width: 60%; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
-    .msg.in { background: var(--bg-header); align-self: flex-start; }
-    .msg.out { background: var(--msg-out); align-self: flex-end; }
+    .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .m-bubble { max-width: 70%; padding: 8px 12px; border-radius: 8px; font-size: 14px; position: relative; word-wrap: break-word; }
+    .m-in { background: var(--bg-header); align-self: flex-start; }
+    .m-out { background: var(--msg-out); align-self: flex-end; }
 
-    .chat-input { padding: 10px 16px; background: var(--bg-header); display: flex; gap: 10px; }
-    .chat-input input { flex: 1; padding: 10px; border-radius: 8px; border: none; background: #2a3942; color: white; }
+    .chat-input-area { padding: 10px; background: var(--bg-header); display: flex; gap: 10px; align-items: center; }
+    .chat-input-area input { flex: 1; padding: 10px; border-radius: 20px; border: none; background: #2a3942; color: white; outline: none; }
+    .btn-send { background: none; border: none; color: var(--wa-green); font-size: 24px; cursor: pointer; }
 
-    /* CALL OVERLAY */
-    #callOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; display: none; flex-direction: column; }
-    video { width: 100%; height: 100%; object-fit: cover; }
-    #localVideo { position: absolute; width: 120px; height: 160px; top: 20px; right: 20px; border-radius: 10px; border: 2px solid white; z-index: 101; }
-    .call-controls { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; gap: 20px; }
-    .c-btn { width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; color: white; }
-    .btn-hangup { background: #ff3b30; }
-    .btn-mute { background: #3b4a54; }
+    /* OVERLAYS */
+    #callOverlay { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; }
+    #localVideo { position: absolute; width: 100px; height: 140px; top: 20px; right: 20px; border-radius: 8px; border: 2px solid #fff; z-index: 10; }
+    #remoteVideo { width: 100%; height: 100%; object-fit: cover; }
+    .call-tools { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 20px; }
+    .btn-call { width: 60px; height: 60px; border-radius: 50%; border: none; color: white; cursor: pointer; font-size: 24px; }
 
     .hidden { display: none !important; }
-    #welcomeScreen { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-dim); text-align: center; }
+    .empty-state { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-dim); text-align: center; }
   </style>
 </head>
 <body>
 
   <div class="sidebar">
     <div class="sb-header">
-      <div class="my-info" id="myIdDisplay">Menghubungkan...</div>
-      <button onclick="addFriend()" style="background:none; border:none; color:var(--wa-green); cursor:pointer; font-size:20px;">➕</button>
+      <div id="myIdDisplay" class="my-id" title="Klik untuk salin">Menghubungkan...</div>
+      <button onclick="addFriend()" style="background:none; border:none; color:var(--wa-green); cursor:pointer; font-size:22px;">➕</button>
     </div>
-    
-    <div class="search-box">
-      <input type="text" placeholder="Cari atau mulai chat baru">
-    </div>
-
-    <div class="contact-list" id="contactList">
-      </div>
+    <div class="contact-list" id="contactList"></div>
   </div>
 
   <div class="chat-area">
-    <div id="welcomeScreen">
+    <div id="welcomeScreen" class="empty-state">
       <div>
-        <h2>DARSAP Web</h2>
-        <p>Pilih kontak untuk mulai menelepon dan chatting ❤️</p>
+        <h2 style="color: var(--wa-green)">DARSAP WhatsApp</h2>
+        <p>Pilih teman untuk mulai chat atau telepon.</p>
       </div>
     </div>
 
     <div id="activeChat" class="hidden" style="height: 100%; display: flex; flex-direction: column;">
       <div class="chat-header">
-        <div class="contact-avatar" id="chatAvatar">?</div>
-        <div class="name-status">
+        <div class="avatar" id="chatAvatar">?</div>
+        <div>
           <b id="chatName">Nama Teman</b><br>
-          <small id="chatStatus" style="color:var(--text-dim)">online</small>
+          <small id="chatStatus" style="color: var(--wa-green)">online</small>
         </div>
         <div class="chat-btns">
           <span onclick="startCall(false)">📞</span>
@@ -97,65 +78,60 @@
         </div>
       </div>
 
-      <div class="messages" id="messageBox">
-        <div class="msg in">Halo! Hubungi aku ya kalau sudah siap.</div>
-        <div class="msg out">Siap! Berikan ID kamu.</div>
-      </div>
+      <div class="messages-container" id="msgContainer"></div>
 
-      <div class="chat-input">
-        <input type="text" placeholder="Ketik pesan">
-        <button style="background:none; border:none; font-size:20px; cursor:pointer">🕊️</button>
-      </div>
+      <form class="chat-input-area" id="chatForm">
+        <input type="text" id="msgInput" placeholder="Ketik pesan..." autocomplete="off">
+        <button type="submit" class="btn-send">➤</button>
+      </form>
     </div>
   </div>
 
   <div id="callOverlay">
     <video id="remoteVideo" autoplay playsinline></video>
     <video id="localVideo" autoplay playsinline muted></video>
-    
-    <div style="position:absolute; top:30px; left:30px;">
-        <h2 id="callingName">Memanggil...</h2>
-        <div id="callDuration">00:00</div>
-    </div>
-
-    <div class="call-controls">
-      <button class="c-btn btn-mute" onclick="toggleMute()">🎙️</button>
-      <button class="c-btn btn-hangup" onclick="endCall()">❌</button>
+    <div class="call-tools">
+      <button class="btn-call" style="background:#3b4a54" onclick="toggleMute()">🎙️</button>
+      <button class="btn-call" style="background:#ff3b30" onclick="endCall()">❌</button>
     </div>
   </div>
 
   <audio id="ringtone" src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg" loop></audio>
 
   <script>
-    let peer;
-    let myID = "";
-    let localStream;
-    let currentCall;
-    let contacts = JSON.parse(localStorage.getItem('darsap_contacts') || '[]');
-    let activeContact = null;
+    let peer, myID;
+    let currentConn = null; // Untuk Chat
+    let currentCall = null; // Untuk Video
+    let localStream = null;
+    let contacts = JSON.parse(localStorage.getItem('wa_contacts') || '[]');
+    let chatHistory = JSON.parse(localStorage.getItem('wa_history') || '{}');
+    let activeFriendId = null;
 
-    // --- INITIALIZATION ---
+    // --- INISIALISASI ---
     window.onload = () => {
-      const savedID = localStorage.getItem('my_darsap_id');
-      const inputID = savedID || prompt("Masukkan ID unik kamu (contoh: darsap01):");
+      myID = localStorage.getItem('my_wa_id') || prompt("Masukkan ID WhatsApp kamu:");
+      if (!myID) return location.reload();
+      localStorage.setItem('my_wa_id', myID);
       
-      if(inputID) {
-        localStorage.setItem('my_darsap_id', inputID);
-        initPeer(inputID);
-      }
+      initPeer();
       renderContacts();
     };
 
-    function initPeer(id) {
-      peer = new Peer(id);
+    function initPeer() {
+      peer = new Peer(myID);
       
-      peer.on('open', pid => {
-        myID = pid;
-        document.getElementById('myIdDisplay').textContent = "ID Saya: " + pid;
+      peer.on('open', id => {
+        document.getElementById('myIdDisplay').innerText = "ID: " + id;
       });
 
+      // Handle Pesan Masuk
+      peer.on('connection', conn => {
+        setupChatConnection(conn);
+      });
+
+      // Handle Telepon Masuk
       peer.on('call', async call => {
-        if(confirm("Panggilan masuk dari seseorang! Terima?")) {
+        if (confirm("Panggilan masuk! Terima?")) {
           document.getElementById('ringtone').play();
           await getMedia(true);
           call.answer(localStream);
@@ -164,94 +140,125 @@
       });
     }
 
-    // --- CONTACT MANAGEMENT ---
+    // --- MANAJEMEN KONTAK ---
     function addFriend() {
       const name = prompt("Nama Teman:");
       const id = prompt("ID PeerJS Teman:");
-      if(name && id) {
-        contacts.push({ name, id });
-        localStorage.setItem('darsap_contacts', JSON.stringify(contacts));
-        renderContacts();
+      if (name && id) {
+        if (!contacts.find(c => c.id === id)) {
+          contacts.push({ name, id });
+          localStorage.setItem('wa_contacts', JSON.stringify(contacts));
+          renderContacts();
+        }
       }
     }
 
     function renderContacts() {
       const list = document.getElementById('contactList');
       list.innerHTML = "";
-      contacts.forEach((c, index) => {
-        const item = document.createElement('div');
-        item.className = "contact-item";
-        item.onclick = () => openChat(c);
-        item.innerHTML = `
-          <div class="contact-avatar">${c.name[0].toUpperCase()}</div>
-          <div class="contact-info">
-            <b>${c.name}</b>
-            <span>ID: ${c.id}</span>
-          </div>
-        `;
-        list.appendChild(item);
+      contacts.forEach(c => {
+        const div = document.createElement('div');
+        div.className = "contact-item";
+        div.onclick = () => openChat(c);
+        div.innerHTML = `<div class="avatar">${c.name[0]}</div><div><b>${c.name}</b><br><small>${c.id}</small></div>`;
+        list.appendChild(div);
       });
     }
 
+    // --- FUNGSI CHAT ---
     function openChat(contact) {
-      activeContact = contact;
+      activeFriendId = contact.id;
       document.getElementById('welcomeScreen').classList.add('hidden');
       document.getElementById('activeChat').classList.remove('hidden');
-      document.getElementById('chatName').textContent = contact.name;
-      document.getElementById('chatAvatar').textContent = contact.name[0].toUpperCase();
-    }
+      document.getElementById('chatName').innerText = contact.name;
+      document.getElementById('chatAvatar').innerText = contact.name[0];
+      
+      // Load History
+      renderMessages();
 
-    // --- CALL LOGIC ---
-    async function getMedia(videoEnabled) {
-      try {
-        localStream = await navigator.mediaDevices.getUserMedia({
-          video: videoEnabled,
-          audio: true
-        });
-        document.getElementById('localVideo').srcObject = localStream;
-      } catch (e) {
-        alert("Gagal mengakses kamera/mic");
+      // Hubungkan Jalur Chat jika belum
+      if (!currentConn || currentConn.peer !== contact.id) {
+        if (currentConn) currentConn.close();
+        const conn = peer.connect(contact.id);
+        setupChatConnection(conn);
       }
     }
 
-    async function startCall(videoMode) {
-      if(!activeContact) return;
+    function setupChatConnection(conn) {
+      currentConn = conn;
+      conn.on('data', data => {
+        saveMessage(conn.peer, 'in', data);
+        if (activeFriendId === conn.peer) renderMessages();
+        else alert("Pesan baru dari " + conn.peer);
+      });
+    }
+
+    document.getElementById('chatForm').onsubmit = (e) => {
+      e.preventDefault();
+      const input = document.getElementById('msgInput');
+      const text = input.value.trim();
       
-      await getMedia(videoMode);
+      if (text && currentConn) {
+        currentConn.send(text); // Kirim ke teman
+        saveMessage(activeFriendId, 'out', text); // Simpan di HP kita
+        renderMessages();
+        input.value = "";
+      } else if (!currentConn) {
+        alert("Menghubungkan ke teman... Tunggu sebentar.");
+      }
+    };
+
+    function saveMessage(friendId, type, text) {
+      if (!chatHistory[friendId]) chatHistory[friendId] = [];
+      chatHistory[friendId].push({ type, text, time: new Date().toLocaleTimeString() });
+      localStorage.setItem('wa_history', JSON.stringify(chatHistory));
+    }
+
+    function renderMessages() {
+      const container = document.getElementById('msgContainer');
+      container.innerHTML = "";
+      const history = chatHistory[activeFriendId] || [];
+      history.forEach(m => {
+        const div = document.createElement('div');
+        div.className = `m-bubble ${m.type === 'in' ? 'm-in' : 'm-out'}`;
+        div.innerHTML = `${m.text} <br> <small style="font-size:10px; opacity:0.5">${m.time}</small>`;
+        container.appendChild(div);
+      });
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // --- FUNGSI VIDEO CALL ---
+    async function getMedia(video) {
+      localStream = await navigator.mediaDevices.getUserMedia({ video, audio: true });
+      document.getElementById('localVideo').srcObject = localStream;
+    }
+
+    async function startCall(isVideo) {
+      await getMedia(isVideo);
       document.getElementById('callOverlay').style.display = 'flex';
-      document.getElementById('callingName').textContent = activeContact.name;
-      
-      currentCall = peer.call(activeContact.id, localStream);
-      handleCall(currentCall);
+      const call = peer.call(activeFriendId, localStream);
+      handleCall(call);
     }
 
     function handleCall(call) {
       currentCall = call;
-      document.getElementById('callOverlay').style.display = 'flex';
-      
       call.on('stream', remoteStream => {
         document.getElementById('ringtone').pause();
         document.getElementById('remoteVideo').srcObject = remoteStream;
       });
-
-      call.on('close', () => {
-        endCall();
-      });
+      call.on('close', endCall);
     }
 
     function endCall() {
-      if(currentCall) currentCall.close();
-      if(localStream) localStream.getTracks().forEach(t => t.stop());
-      
+      if (currentCall) currentCall.close();
+      if (localStream) localStream.getTracks().forEach(t => t.stop());
       document.getElementById('callOverlay').style.display = 'none';
       document.getElementById('ringtone').pause();
-      document.getElementById('remoteVideo').srcObject = null;
     }
 
     function toggleMute() {
       const audio = localStream.getAudioTracks()[0];
       audio.enabled = !audio.enabled;
-      event.target.textContent = audio.enabled ? '🎙️' : '🔇';
     }
   </script>
 </body>
